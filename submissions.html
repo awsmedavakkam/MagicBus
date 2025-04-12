@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale: 1.0"/>
+  <title>Student Submissions</title>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f7fb;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .container {
+      width: 95%;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    h1 {
+      text-align: center;
+      color: #444;
+      font-size: 2em;
+      margin-bottom: 30px;
+    }
+
+    #searchInput {
+      width: 95%;
+      padding: 12px 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+      background-color: #f9f9f9;
+      transition: 0.3s;
+    }
+
+    #searchInput:focus {
+      border-color: #4CAF50;
+      outline: none;
+      background-color: #fff;
+    }
+
+    table {
+      width: 99%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      padding: 16px;
+      text-align: left;
+      font-size: 16px;
+      border-bottom: 1px solid #f1f1f1;
+      transition: all 0.2s;
+    }
+
+    table th {
+      background-color: #4CAF50;
+      color: white;
+      font-weight: 600;
+    }
+
+    table td {
+      background-color: #fff;
+    }
+
+    table tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .status {
+      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .selected {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: space-evenly;
+    }
+
+    .action-buttons button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .select-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .select-btn:hover {
+      background-color: #218838;
+    }
+
+    .reject-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .reject-btn:hover {
+      background-color: #c82333;
+    }
+
+    .disabled-btn {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      background-color: #f9f9f9;
+      transition: 0.3s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #4CAF50;
+      outline: none;
+      background-color: #fff;
+    }
+
+    @media screen and (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      table thead {
+        display: none;
+      }
+
+      table tr {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        background: #fafafa;
+      }
+
+      table td {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border: none;
+        border-bottom: 1px solid #eee;
+      }
+
+      table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Student Submissions</h1>
+
+    <input type="text" id="searchInput" placeholder="Search by name, email, phone, status or reason...">
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Message</th>
+          <th>Timestamp</th>
+          <th>Status</th>
+          <th>Reason</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="student-table-body">
+        <!-- Dynamic rows here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let submissions = JSON.parse(localStorage.getItem("formSubmissions")) || [];
+
+      const renderTable = (data) => {
+        const tableBody = document.getElementById("student-table-body");
+        tableBody.innerHTML = "";
+
+        if (data.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No students found.</td></tr>';
+          return;
+        }
+
+        data.forEach((submission, index) => {
+          const row = document.createElement("tr");
+
+          // Add row class based on status
+          if (submission.status === "selected") {
+            row.classList.add("row-selected");
+          } else if (submission.status === "rejected") {
+            row.classList.add("row-rejected");
+          }
+
+          row.innerHTML = `
+            <td data-label="Name">${submission.name}</td>
+            <td data-label="Email">${submission.email}</td>
+            <td data-label="Phone">${submission.phone}</td>
+            <td data-label="Message">${submission.message}</td>
+            <td data-label="Timestamp">${submission.timestamp}</td>
+            <td data-label="Status">
+              <span class="status ${submission.status || ''}">
+                ${submission.status ? submission.status.charAt(0).toUpperCase() + submission.status.slice(1) : 'Pending'}
+              </span>
+            </td>
+            <td data-label="Reason">
+              <input 
+                type="text" 
+                value="${submission.reason || ''}" 
+                placeholder="Enter reason..." 
+                id="reason-${index}" 
+                ${submission.status ? 'disabled' : ''} 
+              />
+            </td>
+            <td data-label="Action" class="action-buttons">
+              <button class="select-btn ${submission.status ? 'disabled-btn' : ''}" onclick="updateStatus(${index}, 'selected')" ${submission.status ? 'disabled' : ''}>Select</button>
+              <button class="reject-btn ${submission.status ? 'disabled-btn' : ''}" onclick="updateStatus(${index}, 'rejected')" ${submission.status ? 'disabled' : ''}>Reject</button>
+            </td>
+          `;
+
+          tableBody.appendChild(row);
+        });
+      };
+
+      // Initial render
+      renderTable(submissions);
+
+      // Search handler
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = submissions.filter(s =>
+          s.name.toLowerCase().includes(query) ||
+          s.email.toLowerCase().includes(query) ||
+          s.phone.toLowerCase().includes(query) ||
+          (s.status && s.status.toLowerCase().includes(query)) ||
+          (s.reason && s.reason.toLowerCase().includes(query))
+        );
+        renderTable(filtered);
+      });
+
+      // Global function to update status and reason
+      window.updateStatus = (index, status) => {
+        const reasonInput = document.getElementById(`reason-${index}`);
+        const reason = reasonInput ? reasonInput.value : '';
+
+        // Update status and reason
+        submissions[index].status = status;
+        submissions[index].reason = reason;
+        localStorage.setItem("formSubmissions", JSON.stringify(submissions));
+
+        // Re-render table to reflect the changes
+        renderTable(submissions);
+      };
+    });
+  </script>
+</body>
+</html>
